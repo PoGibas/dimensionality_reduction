@@ -69,6 +69,7 @@ PCA
 
 - Extensions
 - Issues
+  - Requires that variables are linearly related   
   - Different scale - when one variable dominates the variance simply because it's in a higher scale
 - When works/doesn't work
 - Implementation
@@ -78,8 +79,43 @@ PCA
 - Cite Pearson 1901
 - difference from svd?
 
+
 kPCA
 ========================================================
+
+# kPCA (https://www.youtube.com/watch?v=HbDHohXPLnU&frags=pl%2Cwn)
+  kernalized PCA
+  non-linear DR 
+
+Linear subspaces may not adequative represent underlying madifold which might have non-linear structure.
+Example:
+  swiss roll
+  tanenbaum faces
+  bulls eye
+
+  2D x1, x2
+  3D (we add one dimension): x1, x2, x1^2 + x2^3
+  ie omega: R2 -> R2
+
+datasets that are not lineary seperanle can be made into lineary seperanle
+
+kernel trick:
+  kernel matrix contains all pairwise evaluations of dot products
+  scales with d
+
+algo
+  pick a kernel function k(xi, xj)
+  calcialte the kerlenl matrix
+  center the kernel matrix
+  solve the eigenproblem Kalphai
+  Project the data to each new dimension j
+
+other non-linear dr
+laplacian eigenmaps
+LLE
+ospmap
+MDS
+feedforward autoencoders
 
 Classical scalling
 ========================================================
