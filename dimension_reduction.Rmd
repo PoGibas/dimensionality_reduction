@@ -1,47 +1,81 @@
 ---
 title: Dimensionality Reduction Methods
+subtitle: Statistical Data Analysis Exam
 author: Povilas Gibas
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  pdf_document:
+    toc: yes
+    toc_depth: 2
+    number_sections: true
+urlcolor: blue
+fig_caption: true
 ---
 
 
 
-# Content
-
-- Curse of High-Dimensionality  
-- Notations  
-- Features of Dimensionality Reduction Methods  
-  - Expected Functionalities  
-  - Characteristics  
-  - Categories  
-- Dimensionality Reduction Methods  
-  - PCA  
-  - kPCA  
-- Tips for Effective Dimensionality Reduction  
 
 
+# Curse of Dimensionality
 
------------------
+In nature or technology combining a large number of simple units allows to perform complex tasks. This solution is cheaper than creating a specific device and is also more robust: the loss or malfunction of a few units does not impair the whole system (i.e. units are redundant - units that come to failure can be replaced with others that achieve the same or a similar task).  
+Redundancy means that parameters that could characterize the set of units aren't independent from each other and to understand all units requires taking the redundancy into account. *The large set of parameters must be summarized into a smaller set, with no or less redundancy* - the goal of dimensionality reduction (DR) (i.e. find low representation of data while preserving their key properties) .
+
+## Practical Problems
+
+*By essence, the world is multidimensional*
+
+Fields where DR is required:
+
+- Processing of sensor arrays: a set of identical sensors (e.g. radio-telescopes); biomedical applications (e.g. electrocardiogram, electroencephalograph); ecology; seismology; weather forecasting; climatology; gps; image processing.
+- Multivariate data analysis: in contrast with sensor arrays multivariate data analysis focuses on the analysis of measures that are related to each other but come from different types of sensors. For example, a car - rotation, force, position, temperature sensors; psycho-sociology tests - a poll gathers questions for which the answers are from different types (true/false, percentage, weight, age, etc.).
+- Data mining: deals with more *exotic* data structures than arrays of numbers (like in multivariate analysis). For example, text mining, if texts are Internet pages, hyperlinks can be encoded in graph structures.
+
+![Projection of plant species on the plane defined by principal component axes](/Users/pogibas/___PHD/exams/stats/dimension_reduction/figures/Diaz_plants.png){width=250px}
+
+## Mathematical Problems
+
+*When the dimensionality grows, the well-known properties of the usual 2D or 3D Euclidean spaces make way for strange and annoying phenomena*
+
+In general high-dimensional data is hard to visualize or at least to understand when they are visualized (i.e. summarize data with lots of variables (often redundant)). 
+
+Another group of problems is *mathematical anomalies*. First time term *curse of dimensionality* used by [Bellman, 1961](https://books.google.be/books?hl=en&lr=&id=iwbWCgAAQBAJ&oi=fnd&pg=PR9&ots=bDH6UqK66h&sig=2JT8vX8dg1-8jSqkwY9ACw3bbnc&redir_esc=y#v=onepage&q=curse&f=false)  for an empty space phenomenon:
+
+> It is the curse of dimensionality, a malediction that has plagued the scientists from the earliest days ... A function $u = u\left(t\right)$ can be visualized as a curve (i.e. density curve) and easily tabulated. It $t$ is specified over $0 \geq t \leq 1$ with $k$-points ($k\left(0.01\right), k = 0,1,2,..,99$) we have to tabulate over $100$ values. A function of two variables $u=u\left(t,s\right)$ needs a 3D surface and if $0 \geq t,s \leq 1$ then we need $100 \times 100$ values ($10^4$). Function with three values needs $10^6$ grid values ... Since current machines are able to store $3 \times 10^4$ values and in the next years may only go up to $10^6$, we see that multidimensional problems cannot be solved routinely because of the memory requirements.
+
+### Ratio of hyper-cube & hyper-sphere
+
+In a $D$-dimensional space a sphere contains a cube (i.e. circumscripted cube): 
+
+\begin{equation}
+  V_{cube}\left(r\right) = \left(2r\right)^D
+\end{equation}
+
+[
+\begin{equation}
+  V_{sphere}\left(r\right) = \frac{\pi^{D/2}r^D}{\Gamma\left(1+ D / 2r\right)^D}
+\end{equation}
+](https://en.wikipedia.org/wiki/Volume_of_an_n-ball)
+
+When $D$ increases the ratio between volume of sphere and cube tends to go towards zero:
+
+\begin{equation}
+  \lim_{D\to\infty} \frac{V_{sphere}\left(r\right)}{V_{cube}\left(r\right)} = 0
+\end{equation}
+
+### Hypervolume of a spherical shell.
+
+Consider 2 concentric spheres (first with radius $r$, second with slightly smaller radius $r - \epsilon$) (i.e. $\epsilon$ is the thickness of the first sphere). The volume of hyper-volume sphere is given in (2):
+
+[
+\begin{equation}
+  \frac{V_{spehere}\left(r\right) - V_{spehere}\left(r\left(1 - \epsilon\right)\right)}{V_{spehere}\left(r\right)} = \frac{r^D - \left(r-\epsilon\right)^D}{r^D}
+\end{equation}
+](https://www.mathworks.com/matlabcentral/mlc-downloads/downloads/submissions/53260/versions/3/previews/html/hypervolume.html)
+
+When $D$ increases the ration tends to go towards $1$ (the shell contains almost all the volume).
 
 
-
-# Curse of High-Dimensionality (UNDER PREPARATION)
-
-Hairy dog/ball prob problem
-__Check examples from 0_print_6.pdf__
-
-
-
------------------
-
-
-
-# Notations (UNDER PREPARATION)
-
-$X$ - matrix of $m x n$ dimension, $m$ - number of variables and $n$ - number of samples.  
-
-
-
------------------
 
 
 
@@ -49,291 +83,174 @@ $X$ - matrix of $m x n$ dimension, $m$ - number of variables and $n$ - number of
 
 ## Expected Functionalities
 
-Goal of DRM is to identify and eliminate the redundancies among the observed variables. This requires three main functionalities (that *ideal method* should have):  
+Goal of DRM is to identify and eliminate the redundancies among the observed variables. This requires three main functionalities (*ideal method* that of course doesn't exist should have all three functionalities):  
 
-  1. Estimate the number of latent variables.  
-  2. Embed data in order to reduce their dimensionality.  
-  3. Embed data in order to recover the latent variable.  
+1. Estimate the number of latent variables.
+2. Embed data in order to reduce their dimensionality.
+3. Embed data in order to recover the latent variable.
 
 Very often, methods are able to either reduce the dimensionality or separate latent variables, but can rarely perform both.  
 
-### Estimation of the number of latent variables
+### Estimation of the Number of Latent Variables
 
 [What is *latent variable*?](http://tcts.fpms.ac.be/asr/project/sprach/report97/node162.html)  
 
 A certain process in nature may be generated from a small set of independent degrees of freedom, but it will usually appear in a more complex way due to a number of reasons:  
 
-- Measurement procedure - the underlying variables are mapped by a fixed transformation into a higher-dimension variable space  
+- Measurement procedure - the underlying variables are mapped by a fixed transformation into a higher-dimension variable space
 - Stochastic variation - noise (added from measurement, maybe even from transformation)   
 
 Let us consider a sample of $D$-dimensional vectors that has been generated by an unknown distribution. In latent variable modeling we assume that the distribution in data space is actually due to a small number $L < D$ of variables acting in combination, called *latent variables*. Thus, a point in latent space is generated according to a prior distribution and it's mapped onto data space by a smooth mapping. This results in an $L$-dimensional manifold in data space. DR is achieved by defining a reverse mapping from data space onto latent space, so that every data point is assigned a representative in latent space.  
 
 The number of latent variables is often computed from a topological point of view, by estimating the intrinsic dimension(ality) of data. The intrinsic dimension reveals the presence of a topological structure in data. When the intrinsic dimension $P$ of data equals the dimension $D$ of the embedding space, there is no structure: there are enough degrees of freedom so that an $\varepsilon$-ball centered on any data point can virtually be completely filled by other data points. On the contrary, when $P < D$, data points are often constrained to lie in a well-delimited subspace. Consequently, a low intrinsic dimension indicates that a topological object or structure underlies the data set.  
 
-[](Latent_variables_1.png)
+![A two-dimensional object is embedded in a 3D Euclidean space. Intuitively, two parameters (or degrees of freedom or *latent variables*) suffice to fully describe the manifold.
+](/Users/pogibas/___PHD/exams/stats/dimension_reduction/figures/Latent_variables_1.png){width=250px}
 
-A two-dimensional object (a surface or 2-manifold) is embedded in a 3D Euclidean space. Intuitively, two parameters (or degrees of freedom or latent variables) suffice to fully describe the manifold. The intrinsic dimension estimated on a few points drawn from the surface confirms that intuition.
 
 What I don't understand:  
-- In contrast with a number of variables, which is necessarily an integer value, the intrinsic dimension hides a more generic concept and may take on real values.  
-- It's mapped onto data space by *a smooth mapping*? Why a smooth mapping.
+
+  - In contrast with a number of variables, which is necessarily an integer value, the intrinsic dimension hides a more generic concept and may take on real values.
+  - It's mapped onto data space by *a smooth mapping*? Why a smooth mapping.
 
 To Read:  
-- [Accurate Estimation of the Intrinsic Dimension Using Graph Distances: Unraveling the Geometric Complexity of Datasets](https://www.nature.com/articles/srep31377) - estimating number of latent variables  
 
-### Embedding data for DR
+  - [Accurate Estimation of the Intrinsic Dimension Using Graph Distances: Unraveling the Geometric Complexity of Datasets](https://www.nature.com/articles/srep31377) - estimating number of latent variables  
 
-The knowledge of the intrinsic dimension $P$ indicates that data have some topological structure and do not completely fill the embedding space. Quite naturally, the following step would consist of re-embedding the data in a lower-dimensional space that would be better filled. ie to re-embed the underlying $P$-dimensional manifold in a space having dimensionality between $P$ and $D$, hopefully closer to $P$ than $D$.  
-Intuitively, DR aims at re-embedding data in such way that the manifold structure is preserved. If this constraint is relaxed, then DR no longer makes sense. The main problem is, of course, how to measure or characterize the structure of a manifold in order to preserve it.  
+### Embedding Data for Dimensionality Reduction
 
-[](Latent_variables_2.png)
+The knowledge of the intrinsic dimension $P$ indicates that data have some topological structure and don't completely fill the embedding space. The following step would consist of re-embedding the data in a lower-dimensional space that would be better filled (re-embed the underlying $P$-dimensional manifold in a space having dimensionality between $P$ and $D$, hopefully closer to $P$ than $D$). Intuitively, DR aims at re-embedding data in such way that the manifold structure is preserved. If this constraint is relaxed, then DR no longer makes sense. The main problem is how to measure or characterize the structure of a manifold in order to preserve it.  
 
-### Embedding for latent variable separation
+![Same 2D object in small dimension space](/Users/pogibas/___PHD/exams/stats/dimension_reduction/figures/Latent_variables_2.png){width=250px}
 
-DR aims at decreasing the number of variables that describe data. In fact, most DR methods can only achieve that precise task. By comparison, the recovery of latent variables goes a step further than dimensionality reduction. Additional constraints are imposed on the desired low-dimension representation.  
-These constraints are generally not related to topology. For example, it is often assumed that the latent variables that generated the data set are (statistically) independent from each other. In this case, the low-dimensional representation must also satisfy this property in order to state that the latent variables have been retrieved.
+### Embedding for Latent Variable Separation
 
-[](Latent_variables_3.png)
+Most DR methods can only decrease the number of variables that describe given data. However, additional constraints can be imposed on the desired low-dimension representation. These constraints are generally not related to topology. For example, it is often assumed that the latent variables that generated the data set are (statistically) independent from each other. In this case, the low-dimensional representation must also satisfy this property in order to state that the latent variables have been retrieved.
 
-Here it can be seen that knowing the abscissa of a point gives no clue about the ordinate of the same point, and vice versa. Also, this figure was achieved gradually by modifying the low-dimensional representation of previous figures.
+![Here it can be seen that knowing the abscissa of a point gives no clue about the ordinate of the same point (in previous figure this wasn't the case). Also, this figure was achieved gradually by modifying the low-dimensional representation of previous figures.
+](/Users/pogibas/___PHD/exams/stats/dimension_reduction/figures/Latent_variables_3.png){width=250px}
 
 
-
------------------
 
 
 
 ## Characteristics
 
-- The model that data are assumed to follow.  
-- The type of algorithm that identifies the model parameters.  
-- The criterion to be optimized, which guides the algorithm.
+1. The model that data are assumed to follow.
+2. The type of algorithm that identifies the model parameters.
+3. The criterion to be optimized, which guides the algorithm.
 
 ### Model 
 
 All methods expect that data sets are generated according to some specific model. For example PCA assumes that dependencies between variables are linear. 
-Models can be linear/non-linear; continuous / discrete.
+Models can be: linear / non-linear; continuous / discrete.
 
-[](Characteristics_model.png)  
+![Object with non-linear relationship (this problem would be hard to solve using linear models like PCA)](/Users/pogibas/___PHD/exams/stats/dimension_reduction/figures/Characteristics_model.png){width=250px}
 
 ### Algorithm
 
-*Batch methods* - cannot start working until the whole set of data is available.  
+*Batch methods* - can't start working until the whole set of data is available.  
+*Online methods* - used when data samples arrive one by one. Each time a new datum is available, online algorithms handle it independently from the previous ones and then ‘forget’ it. Unfortunately, such algorithms don't show the same desirable properties as algebraic procedures:  
 
-When data samples arrive one by one, other types of algorithms exist. For example, PCA can also be implemented by so-called *online or adaptative algorithms*. Each time a new datum is available, online algorithms handle it independently from the previous ones and then ‘forget’ it. Unfortunately, such algorithms do not show the same desirable properties as algebraic procedures:  
-
-- By construction, they work iteratively (with a stochastic gradient descent for example).  
-- Can fall in a local optimum of the criterion, i.e., find a solution that is not exactly the best, but only an approximation.
-- Often require a careful adjustment of several hyperparameters (e.g., learning rates) to fasten the convergence and avoid the above-mentioned local minima.  
+- By construction, they work iteratively (with a stochastic gradient descent).
+- Can fall in a local optimum of the criterion, (find a solution that is not exactly the best, but only an approximation).
+- Often require a careful adjustment of several hyperparameters to fasten the convergence and avoid the above-mentioned local minima.  
 
 ### Criterion
 
 Criterion is a *"measurement"* to be optimized.
 
-1. *Mean square error*.  In order to compute it, the dimensionality is first reduced and then expanded back, provided that the data model could be reversed. Most often the loss of information or deterioration of the data structure occurs solely in the first step, but the second is necessary in order to have a comparison reference. 
+1. *Mean square error*.  In order to compute it, the dimensionality is first reduced and then expanded back (provided that the data model could be reversed). Most often the loss of information or deterioration of the data structure occurs solely in the first step, but the second is necessary in order to have a comparison reference.
 
-$E_codec = E{\Vert y - dec\left(cod\left(y\right)\right)\Vert^2_2}$
+$E_{codec} = E_y\{\Vert y - dec\left(cod\left(y\right)\right)\Vert^2_2\}$
 
-2. *Variance* - one may wish to get a projection that preserves the variance initially observable in the raw data.  
+2. *Variance* - one may wish to get a projection that preserves the variance initially observable in the raw data.
 
-3. From a more geometrical or topological point of view, the projection of the object should preserve its structure, for example, by preserving the *pairwise distances* measured between the observations in the data set.  
+3. From a more geometrical or topological point of view, the projection of the object should preserve its structure, for example, by preserving the *pairwise distances* measured between the observations in the data set.
 
-4. If the aim is latent variable separation, then the criterion can be *decorrelation*. This criterion can be further enriched by making the estimated latent variables as independent as possible (independent component analysis (ICA)[https://en.wikipedia.org/wiki/Independent_component_analysis]).
-
-
-
------------------
+4. If the aim is latent variable separation, then the criterion can be *decorrelation*. This criterion can be further enriched by making the estimated latent variables as independent as possible (independent component analysis [ICA](https://en.wikipedia.org/wiki/Independent_component_analysis)).
 
 
 
-## Categorizing
+
+
+## Categories 
 
 ### Hard & Soft DR
 
-The ratio between the initial dimension of data and the desired dimension after reembedding. Hard DR is suited for problems in which data have from hundreds to hundred of thousands of variables. In such a case, a d  
-The straightest one consists of computing pairwise distances between the points. As an advantage, distances are scalar values that can be easily com- pared to each other. Thus, a possible criterion for dimensionality reduction is distance preservation: the pairwise distances measured between the embedded points should be as close as possible to the ones measured between the initial data points. The next chapter explores this direction and shows how distance preservation can be translated in various objective functions.
-On the other hand, a less intuitive but more satisfying way to measure proximities would be qualitative only. In this case, the exact value of the distances does not matter: for example, one just knows that, “From point a, point b is closer than point c.” The translation of such qualitative concepts into an objective function proves more difficult than for distances. Chapter 5 presents solutions to this problem.rastic DR is usually sought, possibly one of several orders of magnitude. The variables are often massively repeated measures of a certain phenomenon of interest in different points of space. To this class belong classification and pattern recognition problems involving images or spee  
-The straightest one consists of computing pairwise distances between the points. As an advantage, distances are scalar values that can be easily com- pared to each other. Thus, a possible criterion for dimensionality reduction is distance preservation: the pairwise distances measured between the embedded points should be as close as possible to the ones measured between the initial data points. The next chapter explores this direction and shows how distance preservation can be translated in various objective functions.
-On the other hand, a less intuitive but more satisfying way to measure proximities would be qualitative only. In this case, the exact value of the distances does not matter: for example, one just knows that, “From point a, point b is closer than point c.” The translation of such qualitative concepts into an objective function proves more difficult than for distances. Chapter 5 presents solutions to this problem.ch. Methods with a simple model and few parameters like PCA are very effective for hard DR. Soft DR is suited for problems in which the data are not too high-dimensional (less than a few tens of variables). Then no drastic DR is needed. Usually, the components are observed or measured values of different variables, which have a straightforward interpre- tation. Ma  
-The straightest one consists of computing pairwise distances between the points. As an advantage, distances are scalar values that can be easily com- pared to each other. Thus, a possible criterion for dimensionality reduction is distance preservation: the pairwise distances measured between the embedded points should be as close as possible to the ones measured between the initial data points. The next chapter explores this direction and shows how distance preservation can be translated in various objective functions.
-On the other hand, a less intuitive but more satisfying way to measure proximities would be qualitative only. In this case, the exact value of the distances does not matter: for example, one just knows that, “From point a, point b is closer than point c.” The translation of such qualitative concepts into an objective function proves more difficult than for distances. Chapter 5 presents solutions to this problem.ny statis  
-The straightest one consists of computing pairwise distances between the points. As an advantage, distances are scalar values that can be easily com- pared to each other. Thus, a possible criterion for dimensionality reduction is distance preservation: the pairwise distances measured between the embedded points should be as close as possible to the ones measured between the initial data points. The next chapter explores this direction and shows how distance preservation can be translated in various objective functions.
-On the other hand, a less intuitive but more satisfying way to measure proximities would be qualitative only. In this case, the exact value of the distances does not matter: for example, one just knows that, “From point a, point b is closer than point c.” The translation of such qualitative concepts into an objective function proves more difficult than for distances. Chapter 5 presents solutions to this problem.tical studies and opinion polls in domains like social sci- ences and psychology fall in this category. Typical methods include all the usual tools f  
-The straightest one consists of computing pairwise distances between the points. As an advantage, distances are scalar values that can be easily com- pared to each other. Thus, a possible criterion for dimensionality reduction is distance preservation: the pairwise distances measured between the embedded points should be as close as possible to the ones measured between the initial data points. The next chapter explores this direction and shows how distance preservation can be translated in various objective functions.
-On the other hand, a less intuitive but more satisfying way to measure proximities would be qualitative only. In this case, the exact value of the distances does not matter: for example, one just knows that, “From point a, point b is closer than point c.” The translation of such qualitative concepts into an objective function proves more difficult than for distances. Chapter 5 presents solutions to this problem.or multivariate analysis.
+*The ratio between the initial dimension of data and the desired dimension after re-embedding*  
 
+*Hard DR* is suited for problems in which data have from hundreds to hundred of thousands of variables. In such a case, a drastic DR is performed (several orders of magnitude). The variables are often massively repeated measures of a certain phenomenon in different points of space (or at different points over time). To this class belong classification and pattern recognition problems involving images or speech. Most often, the already difficult situation resulting from the huge number of variables is complicated by a low number of available samples. Methods with a simple model and few parameters like PCA are very effective for hard dimensionality reduction.  
+*Soft DR* is suited for problems in which the data aren't too high-dimensional (less than a few tens of variables). Usually, the components are observed or measured values of different variables, which have a straightforward interpretation. Many statistical studies and opinion polls in domains like social sciences and psychology fall in this category.  
 
+### Traditional vs. Generative Model
 
-## Traditional vs. Generative Model
+*The way the method connects the latent variables with the observed ones*  
 
-The model associated with a method actually refers to the way the method connects the latent variables with the observed ones. Almost each method makes different assumptions about this connection. It is noteworthy that this connection can go in both directions: from the latent to the observed variables or from the observed to the latent variables. Most methods use the second solution, which is the simplest and most used one, since the method basically goes in the same direction: the goal is to obtain an estimation of the latent variables starting from the observed ones. More principled methods prefer the first solution: they model the observed variables as a function of the unknown latent variables. This more complex solution better corresponds to the real way data are generated but often implies that those methods must go back and forth between the latent and observed variables in order to determine the model parameters. Such generative models are seldom encountered in the field of DR.
+This connection can go in both directions:  
 
-## Linear vs. Non-linear Model
+- From the latent to the observed variables (*generative*): More principled methods prefer the this solution (they model the observed variables as a function of the unknown latent variables). This more complex solution better corresponds to the real way data are generated.
+- From the observed to the latent variables (*traditional*): is the simplest and most used one, since the method basically goes in the same direction (the goal is to obtain an estimation of the latent variables starting from the observed ones). 
 
-The distinction between methods based on a linear or a nonlinear model is probably the straightest way to classify them. For exa  
-The straightest one consists of computing pairwise distances between the points. As an advantage, distances are scalar values that can be easily com- pared to each other. Thus, a possible criterion for dimensionality reduction is distance preservation: the pairwise distances measured between the embedded points should be as close as possible to the ones measured between the initial data points. The next chapter explores this direction and shows how distance preservation can be translated in various objective functions.
-On the other hand, a less intuitive but more satisfying way to measure proximities would be qualitative only. In this case, the exact value of the distances does not matter: for example, one just knows that, “From point a, point b is closer than point c.” The translation of such qualitative concepts into an objective function proves more difficult than for distances. Chapter 5 presents solutions to this problem.mple, if PCA projects D-dimensional vectors onto a P -dimensional plane, the model comprises O(PD) parameters, and already P + 1 points suffice to entirely determine them. For a nonlinear method like an SOM, the number of parameters grows much more quickly: 3P D parameters hardly suffice to describe a basic nonlinear model.
+### Linear vs. Non-linear Model
 
-## Continuous vs. Discrete Model
+The distinction between methods based on a linear or a nonlinear model is probably the straightest way to classify them. Nonlinear methods are often more powerful than linear ones, because the connection between the latent variables and the observed ones may be much richer than a simple matrix multiplication. On the other hand, their model often comprises many parameters, whose identification requires large amounts of data.  
 
-The model of PCA is continuous: it is a linear transform of the variables. On the other hand, the model of an SOM is discrete: it consists of a finite set of interconnected points. The continuity is a very desirable property when the dimensionality re- duction must be generalized to other points than those used to determine the model parameters. When the model is continuous, the dimensionality reduc- tion is often achieved by using a parameterized function or mapping between the initial and final spaces. In this case, applying the mapping to new points yields their coordinates in the embedding. With only a discrete model, new points cannot be so easily re-embedded: an interpolation procedure is indeed necessary to embed in-between points.
+For example, if PCA projects $D$-dimensional vectors onto a $P$-dimensional plane, the model comprises $\mathcal{O}\left(PD\right)$. For a nonlinear method like SOM, the number of parameters grows much more quickly: $3^PD$ parameters hardly suffice to describe a basic nonlinear model.
 
-## Implicit vs. Explicit Mapping
+### Continuous vs. Discrete Model
 
-Regards the way a method maps the high- and low-dimensional spaces.
+*Regards models continuity*
 
-An explicit mapping consists of directly associating a low-dimensional rep- resentation with each data point. Hence, using an explicit mapping clearly means that the data model is discrete and that the generalization to new points may be difficult. Sammon’s nonlinear mapping (see Subsection 4.2.3) is a typical example of explicit mapping. Typically, the parameters of such a mapping are coordinates, and their number is proportional to the number of observations in the data set.
-On the other hand, an implicit mapping is defined as a parameterized function. For example, the paramaters in the model of PCA define a hyper- plane. Clearly, there is no direct connection between those parameters and the coordinates of the observations stored in the data set. Implicit mappings often originate from continuous models, and generalization to new points is usually straightforward.
-A third intermediate class of mappings also exists. In this class may be gathered all models that define a mapping by associating a low-dimensional representation not to each data point, but to a subset of data points. In this case, the number of low-dimensional representations does not depend strictly on the number of data points, and the low-dimensional coordinates may be considered as generic parameters, although they have a straightforward geo- metric meaning. All DR methods, like SOMs, that involve some form of vector quantization (see Subection 2.5.9 ahead) belong to this class.
+The model of PCA is *continuous*: it is a linear transform of the variables. On the other hand, the model of an SOM is discrete: it consists of a finite set of interconnected points. When the model is continuous, the DR is often achieved by using a parameterized function or mapping between the initial and final spaces. In this case, applying the mapping to new points yields their coordinates in the embedding. With only a *discrete model*, new points can't be so easily re-embedded: an interpolation procedure is indeed necessary to embed in-between points.
 
-## Integrated vs. External Estimation of the Dimensionality
+### Implicit vs. Explicit Mapping
 
-When considering DR, a key point to discuss is the pres- ence of an estimator of the intrinsic dimensionality. The case of PCA appears as an exception, as most other methods are deprived of an integrated es- timator. Actually, they take the intrinsic dimensionality as an external hy- perparameter to be  
-The straightest one consists of computing pairwise distances between the points. As an advantage, distances are scalar values that can be easily com- pared to each other. Thus, a possible criterion for dimensionality reduction is distance preservation: the pairwise distances measured between the embedded points should be as close as possible to the ones measured between the initial data points. The next chapter explores this direction and shows how distance preservation can be translated in various objective functions.
-On the other hand, a less intuitive but more satisfying way to measure proximities would be qualitative only. In this case, the exact value of the distances does not matter: for example, one just knows that, “From point a, point b is closer than point c.” The translation of such qualitative concepts into an objective function proves more difficult than for distances. Chapter 5 presents solutions to this problem. given by the user. In that sense, this hyper-parameter is preferably called the embedding dimension(ality) rather than the intrinsic dimensionality of data. This is justified by the fact that the user may wish to visualize the data on a plane and thus force a two-dimensional embedding even if the intrinsic dimensionality is actually higher.
+*Regards the way a method maps the high-and low-dimensional spaces*
 
-## Layered vs. Standalone Embeddings
+An *explicit mapping* consists of directly associating a low-dimensional representation with each data point. Hence, using an explicit mapping clearly means that the data model is discrete and that the generalization to new points may be difficult. Typically, the parameters of such a mapping are coordinates, and their number is proportional to the number of observations in the data set.   
+On the other hand, an *implicit mapping* is defined as a parameterized function. For example, the parameters in the model of PCA define a hyper-plane. Clearly, there is no direct connection between those parameters and the coordinates of the observations stored in the data set. Implicit mappings often originate from continuous models, and generalization to new points is usually straightforward.
 
-When performing PCA on data, all embeddings of dimensionality ranging between 1 and D are computed at once. The different embeddings are obtained by removing the coordinates along one or several of the D eigenvectors. For instance, computing a 2D embedding can be done by taking the leading eigenvector, which specifies coordinates along a first dimension, and then the second eigenvector, in decreasing order of eigenvalue magnitude. If a 3D embedding is needed, it suffices to retrieve the 2D one, take the third eigenvector, and append the corresponding coordinates.
-All methods that translate the DR into an eigenprob- lem and assemble eigenvectors to form an embedding share this capability and are called spectral methods. To some extent, the embeddings of different di- mensionality provided by spectral methods are not independent since coordi- nates are added or removed but never chang  
-The straightest one consists of computing pairwise distances between the points. As an advantage, distances are scalar values that can be easily com- pared to each other. Thus, a possible criterion for dimensionality reduction is distance preservation: the pairwise distances measured between the embedded points should be as close as possible to the ones measured between the initial data points. The next chapter explores this direction and shows how distance preservation can be translated in various objective functions.
-On the other hand, a less intuitive but more satisfying way to measure proximities would be qualitative only. In this case, the exact value of the distances does not matter: for example, one just knows that, “From point a, point b is closer than point c.” The translation of such qualitative concepts into an objective function proves more difficult than for distances. Chapter 5 presents solutions to this problem.ed when the target dimensionality increases or decreases.
-In contrast, methods relying on other principles (nonspectral methods) do not offer such a comfort. When they compute an embedding of a given dimensionality, only that specific embedding is determined. If the target di- mensionality changes, then all coordinates of the new embedding must be computed again. This means that the method builds standalone embeddings for each specified dimensionality. 
+### Integrated vs. External Estimation of the Dimensionality
 
-## Single vs. Multiple Coordinate Systems
+*The presence of an estimator of the intrinsic dimensionality*
 
-DR does not imply establishing a low- dimensional representation in a single system of coordinates. For example, a natural extension of PCA to a nonlinear model consists in dividing a nonlinear manifold into small pieces, like a (curved) jigsaw. If these pieces are small enough, they may be considered as linear and PCA may be applied to each of them. Obviously, each PCA is independent from the others, raising the difficulty of patching together the projections of each piece of the manifold in the low-dimensional space.
-The most widely known method using several coordinates systems is certainly the local PCA introduced by Kambathla and Leen. They perform a simple vector quantizatioon the data in order to obtain the tesselation of the manifold. More recent papers follow a similar approach but also propose very promising techniques to patch together the manifold pieces in the low-dimensional embedding space. For example, a nonparametric technique is given in [158, 166], whereas probabilistic ones are studied in [159, 189, 178, 29]. (Paziureti!)
+The case of PCA appears as an exception, as most other methods are deprived of an integrated estimator. Actually, they take the intrinsic dimensionality as an external hyper-parameter to be given by the user. In that sense, this hyper-parameter is preferably called the embedding dimension(ality) rather than the intrinsic dimensionality of data.
 
-## Optional vs. Mandatory Vector Quantization
+### Layered vs. Standalone Embeddings
 
-When the amount of available data is very large, the user may decide to work with a smaller set of representative observations. This operation can be done automatically by applying a method of vector quantization to the data set (replaces the original observations in the data set with a smaller set of so-called prototypes or centroids). Some methods are designed in such a way that vector quantization is mandatory (SOM)
+When performing PCA on data, all embeddings of dimensionality ranging between $1$ and $D$ are computed at once. For instance, computing a 2D embedding can be done by taking the leading eigenvector, which specifies coordinates along a first dimension, and then the second eigenvector, in decreasing order of eigenvalue magnitude. If a 3D embedding is needed, it suffices to retrieve the 2D one, take the third eigenvector, and append the corresponding coordinates. All methods that translate the DR into an eigenproblem and assemble eigenvectors to form an embedding share this capability and are called spectral methods.  
+In contrast, methods relying on other principles (nonspectral methods) don't offer such a comfort. When they compute an embedding of a given dimensionality, only that specific embedding is determined. If the target dimensionality changes, then all coordinates of the new embedding must be computed again. This means that the method builds standalone embeddings for each specified dimensionality. 
 
-## Batch vs. Online Algorithm
+<!-- ### Single vs. Multiple Coordinate Systems (DONT UNDERSTAND)
 
-Data observations may arrive consecutively or, alternatively, the whole data set may be available at once. In the first case, an online algorithm is welcome; in the second case, an offline algorithm suffices. More precisely, offline or “batch” algorithms cannot work until the whole set of observations is known.
-The simple model of PCA naturally leads to a simple batch procedure, although online variants are possible as well. On the other hand, the more complex model of a SOM favors an online algorithm (a batch version also exists, but it is seldom used).
-Actually, the behavior of true online algorithms is rather complex, espe- cially when the data sequence does not fulfill certain conditions (like sta- tionarity or ergodicity). For this reason, batch algorithms are usually pre- ferred. Fortunately, most online algorithms can be made batch ones using the Robbins–Monro procedure [156]. The latter simulates a possibly infinite data sequence by repeating a finite set of observations; by construction, this method ensures some kind of stationarity. Each repetition is called an epoch; if the order of the available observations does not matter, then they are usually ramdomly permuted before each epoch, in order to avoid any influence on the algorithm convergence. The Robbins–Monro procedure guarantees the con- vergence on a solution if the algorithm satisfies certain conditions as epochs go by. These conditions typically regard parameters like step sizes, learning rates, and other time-varying parameters of online algorithms.
+DR does not imply establishing a low-dimensional representation in a single system of coordinates. For example, a natural extension of PCA to a nonlinear model consists in dividing a nonlinear manifold into small pieces, like a (curved) jigsaw. If these pieces are small enough, they may be considered as linear and PCA may be applied to each of them. Obviously, each PCA is independent from the others, raising the difficulty of patching together the projections of each piece of the manifold in the low-dimensional space.
+The most widely known method using several coordinates systems os local PCA introduced (a simple vector quantization on the data in order to obtain the tesselation of the manifold)
+ -->
 
-## Exact vs. Approximate Optimization
+### Optional vs. Mandatory Vector Quantization
+
+When the amount of available data is very large, the user may decide to work with a smaller set of representative observations. This operation can be done automatically by applying a method of vector quantization to the data set (replaces the original observations in the data set with a smaller set of so-called prototypes or centroids). Some methods are designed in such a way that vector quantization is mandatory (SOM).
+
+### Batch vs. Online Algorithm
+
+Data observations may arrive consecutively or the whole data set may be available at once. In the first case, an online algorithm is welcome; in the second case, an offline algorithm suffices. More precisely, offline or “batch” algorithms can't work until the whole set of observations is known.  
+The simple model of PCA naturally leads to a simple batch procedure. On the other hand, the more complex model of a SOM favors an online algorithm (a batch version also exists, but it is seldom used).  
+Actually, the behavior of true online algorithms is rather complex, especially when the data sequence does not fulfill certain conditions (like stationarity or ergodicity). Fortunately, most online algorithms can be made batch ones using the [Robbins–Monro procedure](https://en.wikipedia.org/wiki/Stochastic_approximation). The latter simulates a possibly infinite data sequence by repeating a finite set of observations; by construction, this method ensures some kind of stationarity.
+
+### Exact vs. Approximate Optimization
 
 Most often, batch algorithms result from some analytical or algebraic developments that give the solution in closed form, like PCA. Given a finite data set, which is known in advance, a batch algorithm like PCA can be proved to compute the optimal solution.  
-On the opposite, online or adaptive algorithms are often associated with generic optimization procedures like stochastic gradient descent (see App. C.2). Such procedures do not offer strong guarantees about the result: the conver- gence may fail. Nonetheless, on-line algorithms transformed into batch ones by the Robbins–Monro procedure are guaranteed to converge on a solution, after a certain number of epochs.3 Unfortunately, this solution may be a local optimum.
+On the opposite, online or adaptive algorithms are often associated with generic optimization procedures like stochastic gradient descent. Such procedures don't offer strong guarantees about the result (the convergence may fail).
 
-## The Type of Criterion To Be Optimized
+### The Type of Criterion To Be Optimized
 
 The criterion that guides the DR is probably the most important characteristic of a DR method, even before the model specification. Actually, the data model and the algorithm are often fitted in order to satisfy the constraints imposed by the chosen criterion.  
-The straightest one consists of computing pairwise distances between the points. As an advantage, distances are scalar values that can be easily com- pared to each other. Thus, a possible criterion for dimensionality reduction is distance preservation: the pairwise distances measured between the embedded points should be as close as possible to the ones measured between the initial data points. The next chapter explores this direction and shows how distance preservation can be translated in various objective functions.
-On the other hand, a less intuitive but more satisfying way to measure proximities would be qualitative only. In this case, the exact value of the distances does not matter: for example, one just knows that, “From point a, point b is closer than point c.” The translation of such qualitative concepts into an objective function proves more difficult than for distances. Chapter 5 presents solutions to this problem.
-
-----
-
-# DR methods
-
-## PCA
-<!--
-  Variance shows how much variables change together:
-    sigma = E ((xi - xmean)^2 / (n - 1))
-  The rows of P are the principal components of X
-  PCA tries to de-correlate the original data by finding directions in which variance in maximized (or minimized for off-diagonal)
-  V %*% t(V) makes an identity matrix, this V %*% t(V) %*% lambda %*% V %*% t(V) just returns lambda (eigenvalues) 
--->   
-
-- Goal    
-  Find orthonormal transformation matrix $P$ with which $Y = PX$ such that $C_Y = \frac{1}{n - 1} YY^{T}$ is diagonalized.   
-
-  $C_X = \frac{1}{n - 1}XX^{T}$ shows how much variables change together and we want $C_Y$ where:
-    1. Maximum variance on the diagonal (max difference between samples);
-    2. Minimum off-diagonal variance (non-zero values are caused by noise and redundancy).   
-    $ $
-
-  $C_Y = \frac{1}{n - 1}YY^{T} = \frac{1}{n - 1} PX(PX)^{T} = \frac{1}{n - 1} PXX^{T}P^{T} = \frac{1}{n - 1} = PAP^{T} = \frac{1}{n - 1} V^{T}(V \Lambda V^{T})V^{T} = \frac{1}{n - 1} \Lambda$
-
-  $P$ - m-by-m matrix of weights whose columns are the eigenvectors of XTX (linear projection for a high dimensional space)
-  $V$ - eigenvector
-  $\Lambda$ - diagonal matrix of eigenvalues
-
-- Algorithm
-  0.
-    0.1. Scale - equalizes variance (divide variable by it's variance);  
-    0.2. Center - equalizes mean (divided by XXX);
-  1. Get similarity matrix $C_X$ (covariance, correlation, etc).  
-  2. Calculate eigenvalues and eigenvectors.  
-  3. ?? Use principal components
-
-- Extensions
-  kPCA
-- Issues
-  - Requires that variables are linearly related   
-  - Different scale - when one variable dominates the variance simply because it's in a higher scale
-- When works/doesn't work
-- Implementation
-  - Computationally scales O(np2 + p3)
-  - stats::prcomp
-
-- Cite Pearson 1901
-- difference from svd?
+The straightest one consists of computing pairwise distances between the points. As an advantage, distances are scalar values that can be easily com- pared to each other. Thus, a possible criterion for dimensionality reduction is distance preservation: the pairwise distances measured between the embedded points should be as close as possible to the ones measured between the initial data points.  
+On the other hand, a less intuitive but more satisfying way to measure proximities would be qualitative only. In this case, the exact value of the distances does not matter: for example, one just knows that, “From point a, point b is closer than point c.” The translation of such qualitative concepts into an objective function proves more difficult than for distances.
 
 
-# kPCA
 
-If groups are lineary inseperable in the input space (eg $R^{2}$) we can make them lineary seperable by mapping them to higher dimension space   
-$\Phi: R^{2} -> R^{3}$. 
-$(x1, x2) -> x1, x2, x1^2 + x2^2)
-
-This can be computationally expensive, but we can use kernel trick
-kPCA extends PCA to a high dimensional feature space using kernel trick
-
-Data should be centered
-
-To understand the utility of kernel PCA, particularly for clustering, observe that, while N points cannot in general be linearly separated in dimensions, they can almost always be linearly separated in dimensions. That is, given N points, if we map them to an N-dimensional space with it is easy to construct a hyperplane that divides the points into arbitrary clusters.
-
-
-(https://www.youtube.com/watch?v=HbDHohXPLnU&frags=pl%2Cwn)
-  kernalized PCA
-  non-linear DR 
-
-Linear subspaces may not adequative represent underlying madifold which might have non-linear structure.
-Example:
-  swiss roll
-  tanenbaum faces
-  bulls eye
-
-
-datasets that are not lineary seperanle can be made into lineary seperanle
-
-kernel trick:
-  kernel matrix contains all pairwise evaluations of dot products
-  scales with d
-
-algo
-  pick a kernel function k(xi, xj)
-  calcialte the kerlenl matrix
-  center the kernel matrix
-  solve the eigenproblem Kalphai
-  Project the data to each new dimension j
-
-other non-linear dr
-laplacian eigenmaps
-LLE
-ospmap
-MDS
-feedforward autoencoders
-
-# Classical scalling
-
-# Isomap
-
-# LLE
-
-# Qualities of DR methods
-
-# Applications
-
-- R packages
-- Solving problems
-  - Swiss roll
-  - nipt
 
 
 # Tips for Effective Dimensionality Reduction
@@ -343,61 +260,66 @@ feedforward autoencoders
 One doesn't need to commit to only on tool, however must recognize which methods are appropriate for a given problem/dataset.  
 
 The choice of a DR method depends:  
-- On the nature of your input data (continuous, categorical, count, distance data).  
-- Resolution of the data (DR methods can be focused on recovering either global or local structures in the data). Linear methods such as PCA, correspondence analysis (CA), multiple CA (MCA), classical multidimensional scaling (cMDS) are more adept at preserving global structure, whereas nonlinear methods such as kPCA, nMDS, Isomap, diffusion maps and varieties of neighbor embedding (NE) techniques such as t-SNE are better at representing local interactions.   
-- If observations in data have assigned class labels, and goal is to obtain a representation that best separates them into known categories one supervised DR techniques. Examples of supervised DR methods include partial least squares (PLS), linear discriminant analysis (LDA), neighborhood component analysis (NCA) and the bottleneck neural network classifier. Unlike the previously listed unsupervised methods, blind to observations group memberships, these supervised DR techniques directly use the class assignment information to cluster together data points with the same labels.  
-- For situations in which multidomain data are gathered, e.g., gene expression together with proteomics and methylation data, one might apply DR to each dataset separately and then align them using [a Procrustes transformation](https://onlinelibrary.wiley.com/doi/abs/10.1002/bs.3830070216) or, instead, consider methods that allow integration of multiple datasets such as the conjoint analysis method for multiple tables known as [STATIS](https://www.sciencedirect.com/science/article/pii/0167947394901341?via%3Dihub) and the equivalent method for the conjoint analysis of multiple distance matrices called DiSTATIS.
+
+- On the nature of input data (continuous, categorical, count, distance data).
+- Resolution of the data (DR methods can be focused on recovering either global or local structures in the data). Linear methods such as PCA, correspondence analysis (CA), multiple CA (MCA), classical multidimensional scaling (cMDS) are more adept at preserving *global structure*, whereas nonlinear methods such as kPCA, nMDS, Isomap, diffusion maps and varieties of neighbor embedding (NE) techniques such as t-SNE are better at representing *local interactions*.
+- If observations in data have assigned class labels (and goal is to obtain a representation that best separates them into known categories) use supervised DR techniques. For example: partial least squares (PLS), linear discriminant analysis (LDA), neighborhood component analysis (NCA) and the bottleneck neural network classifier - these supervised DR techniques directly use the class assignment information to cluster together data points with the same labels.
+- For situations in which multidomain data are gathered (gene expression + proteomics), one might apply DR to each dataset separately and then align them using [a Procrustes transformation](https://onlinelibrary.wiley.com/doi/abs/10.1002/bs.3830070216) or methods that allow integration of multiple datasets such as the conjoint analysis method for multiple tables known as [STATIS](https://www.sciencedirect.com/science/article/pii/0167947394901341?via%3Dihub).
 
 ## Preprocess Continuous and Count Input Data
 
 Before applying DR, suitable data preprocessing is often necessary.  
-- Data centering (subtracting variable means from each observation) — is a required step for PCA.  
-- Scaling—multiplying each measurement of a variable by a scalar factor so that the resulting feature has a variance of one. The scaling step ensures equal contribution from each variable, which is especially important for datasets containing heterogeneous features with highly variable ranges or distinct units, e.g., patient clinical data or environmental factors data. 
-When the units of all variables are the same, e.g., in high-throughput assays, normalizing feature variances is not advised, because it results in shrinkage of features containing strong signals and inflation of features with no signal.  
+
+- Data centering (subtracting variable means from each observation) — is a required step for PCA.
+- Scaling—multiplying each measurement of a variable by a scalar factor so that the resulting feature has a variance of one. The scaling step ensures equal contribution from each variable, which is especially important for datasets containing heterogeneous features with highly variable ranges or distinct units, e.g., patient clinical data or environmental factors data. When the units of all variables are the same normalizing feature variances is not advised, because it results in shrinkage of features containing strong signals and inflation of features with no signal.
 - If changes in data are multiplicative (variables measure percent increase/decrease), one should consider using a log-transform before applying PCA.  
 -  When working with genomic sequencing data, two issues need to be addressed before applying DR:  
-  1. Each sequencing sample has a different library size (sequencing depth). In order to make observations comparable to each other, samples need to be normalized by dividing each measurement by a corresponding sample size factor.  
-  2. The assay data exhibit a mean-variance trend in which features with higher means have higher variances. A variance stabilization transformation (VST) is needed to adjust for this effect and to avoid bias toward the highly abundant features. For counts with a negative-binomial distribution, such as the sequencing read counts, an inverse hyperbolic sine transformation or similar techniques are recommended.    
+
+  1. Each sequencing sample has a different library size (sequencing depth). In order to make observations comparable to each other, samples need to be normalized by dividing each measurement by a corresponding sample size factor.
+  2. The assay data exhibit a mean-variance trend in which features with higher means have higher variances. A variance stabilization transformation (VST) is needed to adjust for this effect and to avoid bias toward the highly abundant features. For counts with a negative-binomial distribution, such as the sequencing read counts, an inverse hyperbolic sine transformation or similar techniques are recommended.
 
 ## Handling Categorical Input Data 
 
-If available measurements are categorical - the relation-ship between the levels (distinct values) of two categorical variables is of interest, CA is applied to a contingency table (constructed from the data) whose entries are the categories’ co-occurrence frequencies. If more than two categorical variables are available, MCA enables the study of both the relationship between the observations and the associations between variable categories. MCA is a generalization of CA and is simply CA applied to an indicator matrix formed by a dummy (one-hot) encoding of the categorical variables. When the input data contain both numerical and categorical variables, two strategies are available. If only a few categorical variables are present, PCA is used on numerical variables, and the group means for the levels of the categorical variables can be projected as supplementary (unweighted) points. On the other hand, if the mixed dataset contains a large number of categorical variables, [multiple factor analysis (MFA)](https://www.sciencedirect.com/science/article/pii/016794739490135X?via%3Dihub) can be used. The method applies PCA on numerical and MCA on categorical variables and combines the results by weighing variable groups.  
-Another approach to working with categorical or mixed data is to perform PCA on variables transformed using an “optimal quantification.” Traditional PCA cannot be applied to categorical variables, because its objective is to maximize the variance accounted for, a concept that exists only for numerical variables. Variance can be replaced by a chi-squared distance on category frequencies (as in CA). Or an appropriate variable transformation can be applied before doing a PCA (converting categorical variables to dummy binary features; use optimal scaling categorical PCA (CATPCA).  
-Optimal scaling replaces original levels of categorical variables with category quantifications such that the variance in the new variables is maximized. CATPCA is then formulated as an optimization problem, in which the squared difference between the quantified data and the principal component is minimized iteratively, alternating between the component scores, the component loadings, and the variable quantification. An advantage of optimal scaling is that it does not assume a linear relationship between var- iables. In fact, the ability of CATPCA to handle nonlinear relations between variables is important even when the input data are all numeric. Thus, when nonlinearities are present and the standard PCA explains only a low proportion of the variance, optimal scaling provides a possible remedy.
+If available measurements are categorical - the relation-ship between the levels (distinct values) of two categorical variables is calculated with CA (applied to a contingency table (constructed from the data) whose entries are the categories - co-occurrence frequencies). If more than two categorical variables are available, MCA enables the study of both the relationship between the observations and the associations between variable categories.  
+When the input data contain both numerical and categorical variables, two strategies are available:  
+
+- If only a few categorical variables are present, PCA is used on numerical variables, and the group means for the levels of the categorical variables can be projected as supplementary (unweighted) points.
+- If the mixed dataset contains a large number of categorical variables, [multiple factor analysis (MFA)](https://www.sciencedirect.com/science/article/pii/016794739490135X?via%3Dihub) can be used. The method applies PCA on numerical and MCA on categorical variables and combines the results by weighing variable groups.  
+
+Another approach to working with categorical or mixed data is to perform PCA on variables transformed using an *optimal quantification*. In PCA variance can be replaced by a chi-squared distance on category frequencies (as in CA). Or an appropriate variable transformation can be applied before doing a PCA (converting categorical variables to dummy binary features; use optimal scaling categorical PCA (CATPCA). Optimal scaling replaces original levels of categorical variables with category quantifications such that the variance in the new variables is maximized. CATPCA is then formulated as an optimization problem, in which the squared difference between the quantified data and the principal component is minimized iteratively, alternating between the component scores, the component loadings, and the variable quantification. An advantage of optimal scaling is that it does not assume a linear relationship between variables.
 
 ## Use Embedding Methods to Reduce Similarity/Dissimilarity  
 
 When neither quantitative nor qualitative features are available, the relationships between data points, measured as dissimilarities (or similarities), can be the basis of DR. Even when variable measurements are available, computing dissimilarities and using distance-based methods might be an effective approach.  
 Choose a dissimilarity metric that provides the best summary of data. If the original data are binary, the Euclidean distance is not appropriate, and the Manhattan distance is better. If the features are sparse, however, then the Jaccard distance is preferred.  
-When the dissimilarity data are only available in nonstandard, qualitative formats, [more specialized ordinal embedding methods are available](http://www.jmlr.org/papers/volume18/16-061/16-061.pdf). When using optimization-based multidimensional scaling (MDS), you can choose to preserve only the local interactions by restricting the minimization problem to only the distances from data points to their neighbors, e.g., the k-nearest neighbors. This approach can be referred to as “local” MDS.  
-Dissimilarities can also be used as input to t-SNE. Similar to local MDS, t-SNE is only focused on representing the short-range interactions. However, the method achieves locality in a different way, by converting the supplied distances into proximity measures using a small- tail Gaussian kernel. A collection of neural network–based approaches, called [`word2vec`](https://arxiv.org/pdf/1301.3781.pdf), have been developed that also use similarity data (the co-occurrence data) to generate vector embeddings of objects in a continuous Euclidean space.  
+When the dissimilarity data are only available in nonstandard, qualitative formats, [more specialized ordinal embedding methods are available](http://www.jmlr.org/papers/volume18/16-061/16-061.pdf). A collection of neural network–based approaches, called [`word2vec`](https://arxiv.org/pdf/1301.3781.pdf), have been developed that also use similarity data (the co-occurrence data) to generate vector embeddings of objects in a continuous Euclidean space.  
 
 ## Decide on the Number of Dimensions to Retain
 
-First two or three PCs might explain an insufficient fraction of the variance, in which case the higher-order components should be retained, and multiple combinations of the components should be used for visualizations (e.g., PC1 versus PC2, PC2 versus PC4, and PC3 versus PC5 etc.). For DR methods based on spectral decompositions, such as PCA one could use the distribution of the eigenvalues to guide your choice of dimensions. In practice, people usually rely on [“the elbow rule”](https://en.wikipedia.org/wiki/Elbow_method_(clustering)) when making decisions. When using these approaches, the number of components can be chosen by repeating the DR process using an increasing number of dimensions and evaluating whether incorporating more components achieves a significantly lower value of the loss function that the method minimizes, e.g., [the Kullback–Leibler divergence](https://en.wikipedia.org/wiki/Kullback–Leibler_divergence) between transition probabilities defined for the input and the output data in the case of t-SNE.
+First two or three PCs might explain an insufficient fraction of the variance, in which case the higher-order components should be retained, and multiple combinations of the components should be used for visualizations (e.g., PC1 versus PC2, PC2 versus PC4, and PC3 versus PC5 etc.). For DR methods based on spectral decompositions, such as PCA one could use the distribution of the eigenvalues to guide your choice of dimensions. In practice, people usually rely on [“the elbow rule”](https://en.wikipedia.org/wiki/Elbow_method_(clustering)) when making decisions.  
+When number of wanted dimensions is unknown - the number of components can be chosen by repeating the DR process using an increasing number of dimensions and evaluating whether incorporating more components achieves a significantly lower value of the loss function that the method minimizes, e.g., [the Kullback–Leibler divergence](https://en.wikipedia.org/wiki/Kullback–Leibler_divergence).
+
+[Kullback-Leibler & t-SNE](http://jotterbach.github.io/2016/05/23/TSNE/)
 
 ## Apply the Correct Aspect Ratio for Visualizations
 
-The proportional relationship between the height and the width (and also the depth) of a 2D (and 3D) plot can strongly influence your perception of the data; therefore, the DR plots should obey the aspect ratio consistent with the relative amount of information explained by the output axes displayed (ie, the height-to-width ratio of a PCA plot should be consistent with the ratio between the corresponding eigenvalues). The ordering of the dimensions is not meaningful in many optimization-based DR meth- ods. For example, in the case of t-SNE, you can choose the number of output dimensions (usu- ally two or three) before computing the new representation. Unlike the PCs, the t-SNE dimensions are unordered and equally important because they have the same weight in the loss function minimized by the optimization algorithm. Thus, for t-SNE, the convention is to make the projection plots square or cubical.
+The proportional relationship between the height and the width (and also the depth) of a 2D (and 3D) plot can strongly influence your perception of the data; therefore, the DR plots should obey the aspect ratio consistent with the relative amount of information explained by the output axes displayed (ie, the height-to-width ratio of a PCA plot should be consistent with the ratio between the corresponding eigenvalues). The ordering of the dimensions is not meaningful in many optimization-based DR methods. For example, in the case of t-SNE, one can choose the number of output dimensions before computing the new representation. Unlike the PCs, the t-SNE dimensions are unordered and equally important because they have the same weight in the loss function minimized by the optimization algorithm. Thus, for t-SNE, the convention is to make the projection plots square or cubical.
 
 ## Understanding the Meaning of the New Dimensions
 
 Feature maps or correlation circles can be used to determine which original variables are associated with each other or with the newly generated output dimensions. The angles between the feature vectors or with the PC axes are informative: vectors at approximately 0 (180) with each other indicate that the corresponding variables are closely, positively (negatively) related, whereas vectors with a 90 angle indicate rough independence.  
 
-[](Correlation_circle.png)
+![PCA biplot](/Users/pogibas/___PHD/exams/stats/dimension_reduction/figures/Correlation_circle.png){width=250px}
 
-The plot indicates that high values of PC1 indicate low values in "Flav" (flavanoids) and "Phenols" (total phenols) and high values in "Malic Acid" and "AlcAsh"(alcalinity of ash). Additionally, "AlcAsh" (alcalinity of ash) levels seem to be closely negatively correlated with "NonFlav Phe- nols" (nonflavanoid phenols) and independent of "Alcohol" levels.
-
-[](Contribution_bar.png)
-
-Barplot shows variables percent contribution to PCX; note that the percent contribution does not carry information on the direction of the correlation.
+![Barplot shows variables percent contribution to $PC_n$
+](/Users/pogibas/___PHD/exams/stats/dimension_reduction/figures/Contribution_bar.png){width=250px}
 
 ## Finding Hidden Signal
 
-The most frequently encountered latent patterns are discrete clusters or continuous gradients. When performing the cluster analysis, in which the goal is to estimate samples’ group memberships, it is common practice to first apply PCA. More specifically, practitioners often use a set of the top (e.g., 50) PCs as input to a clustering algorithm. PCA reduction is intended as a noise-reduction step because the top eigenvectors are expected to contain all signals of interest. Regrettably, this property does not extend to all DR methods. The output generated by neighborhood embedding techniques, such as t-SNE, should not be used for clustering, as they preserve neither distances nor densities.  
-Unlike discrete clusters, continuous changes in the data are less frequently identified. It is important to know how to identify and accurately interpret latent gradients, as they often appear in biological data associated with unknown continuous processes. Gradients are pres- ent when data points do not separate into distinct tightly packed clusters but instead exhibit a gradual shift from one extreme to another.
+The most frequently encountered latent patterns are discrete clusters or continuous gradients. When performing the cluster analysis, in which the goal is to estimate group memberships, it is common practice to first apply PCA (intended as a noise-reduction step). This property does not extend to all DR methods. The output generated by neighborhood embedding techniques, such as t-SNE, should not be used for clustering, as they preserve neither distances nor densities.  
+Unlike discrete clusters, continuous changes in the data are less frequently identified. It is important to know how to identify and accurately interpret latent gradients, as they often appear in biological data associated with unknown continuous processes. Gradients are present when data points don't separate into distinct tightly packed clusters but instead exhibit a gradual shift from one extreme to another.
 
-[](Cluster_vs_Gradient.png)
+![Categorical vs continuous variable](/Users/pogibas/___PHD/exams/stats/dimension_reduction/figures/Cluster_vs_Gradient.png){width=250px}
 
 The variable behind the observed continuous gradient could be unknown. In this case, one should focus on finding the discrepancies between the observations at the endpoints (extremes) of the gradients by inspecting the differences between their values for any available external covariates. 
 
@@ -407,14 +329,213 @@ One way of dealing with “multidomain,” is to perform DR for each dataset sep
 
 ## Checking the Robustness of Results and Quantify Uncertainties
 
-- For some datasets, the PCA PCs are ill defined, i.e., two or more successive PCs may have very similar variances, and the corresponding eigenvalues are almost exactly the same. And their loadings cannot be interpreted separately, because a very slight change in even one observation can lead to a completely different set of eigenvectors. In these cases, we say that these PCs are unstable. The dimensions corresponding to similar eigenvalues need to be kept together and not individually interpreted.  
-- When working with techniques that require parameter specification, you should also check the stability of your results against different parameter settings. For example, when running t- SNE, you need to pick a value for perplexity, and different settings can alter the results obtained even qualitatively.  
-- A separate concern is a method’s stability against outliers. In general, it is known that obser- vations far from the origin have more influence on the PCs than the ones close to the center; sometimes it is possible that only a small fraction of the samples in the data almost fully deter- mines the PCs. You should be mindful of these situations and verify that the structure captured by DR represents the bulk of the data and not just a few outliers.  
+- The PCA two or more successive PCs may have very similar variances, and the corresponding eigenvalues are almost exactly the same. And their loadings can't be interpreted separately, because a very slight change in even one observation can lead to a completely different set of eigenvectors (ie that these PCs are unstable). The dimensions corresponding to similar eigenvalues need to be kept together and not individually interpreted.
+- When working with techniques that require parameter specification, one should also check the stability of results against different parameter settings(eg perplexity in t-SNE).
+- Method’s stability against outliers. In general, it is known that observations far from the origin have more influence on the PCs than the ones close to the center; sometimes it is possible that only a small fraction of the samples in the data almost fully deter- mines the PCs.
 - Additionally, one can estimate the uncertainties associated with observations by constructing a collection of "bootstrap" datasets, i.e., random subsets of the data generated by resampling observations with replacement. 
 
-[](bootstrap_uncertainties.png)
+![Bootstrapped PCA shows density of calculated positions along the given components](/Users/pogibas/___PHD/exams/stats/dimension_reduction/figures/bootstrap_uncertainties.png){width=250px}
 
 
+
+
+
+# Dimensionality Reduction Methods
+
+## PCA
+
+Is the most basic technique for DR (maybe even oldest - [Pearson, 1901](https://www.tandfonline.com/doi/abs/10.1080/14786440109462720)). 
+
+![On lines and planes of closest fit to systems of points in space](/Users/pogibas/___PHD/exams/stats/dimension_reduction/figures/pearson.png){width=250px}
+
+### Goal  
+
+Find orthonormal transformation matrix $P$ with which $Y = PX$ such that $C_Y = \frac{1}{n - 1} YY^{T}$ is diagonalized (i.e PCA tries to de-correlate the original data by finding directions in which variance in maximized (or minimized for off-diagonal))
+
+
+$C_X = \frac{1}{n - 1}XX^{T}$ shows how much variables change together and we want $C_Y$ where:
+    1. Maximum variance on the diagonal (max difference between samples);
+    2. Minimum off-diagonal variance (non-zero values are caused by noise and redundancy).   
+
+\begin{equation}
+  C_Y = \frac{1}{n - 1}YY^{T} = \frac{1}{n - 1} PX(PX)^{T} = \frac{1}{n - 1} PXX^{T}P^{T} = \frac{1}{n - 1} = PAP^{T} = \frac{1}{n - 1} V^{T}(V \Lambda V^{T})V^{T} = \frac{1}{n - 1} \Lambda
+\end{equation}
+
+  $P$ - $m\times m$ matrix of weights whose columns are the eigenvectors of $X^TX$ (linear projection for a high dimensional space);  
+  $V$ - eigenvectors;  
+  $\Lambda$ - diagonal matrix of eigenvalues  
+
+### Algorithm  
+
+1. Scale - equalizes variance (divide variable by it's variance)
+2. Center - equalizes mean
+3. Get similarity matrix $C_X$ (covariance, correlation, etc)
+4. Calculate eigenvalues and eigenvectors
+  
+Complexity of PCA is [$\mathcal{O}(p^2n + p^3)$](https://stackoverflow.com/questions/20507646/how-is-the-complexity-of-pca-ominp3-n3).
+
+Implementation in `R` with `stats::prcomp`
+
+### Extensions  
+
+- kPCA
+- SVD (how is it different?)
+
+### Issues
+
+- Requires that variables are linearly related
+- Different scale - when one variable dominates the variance simply because it's in a higher scale
+
+
+
+
+
+## kPCA
+
+If groups are lineary inseperable in the input space ($R^{2}$) we can make them lineary seperable by mapping them to higher dimension space. Kernel Principal Component Analysis (kPCA) extends PCA to deal with nonlinear dependencies among variables. The idea behind kPCA is to map the data into a high dimensional space using a possibly non-linear function function $\Phi$ (??Why non-linear??) and then to perform a PCA in this high dimensional space:  
+
+ARROWS $\Phi: R^{2} -> R^{3}$  
+ARROWS $(x1, x2) -> (x1, x2, x1^2 + x2^2)$
+
+This can be computationally expensive, but we can use *kernel trick*. If the columns of $X$ are centered around $0$, then the principal components can also be computed from the inner product matrix $K = X^TX$. Due to this way of calculating a PCA, we do not need to explicitly map all points into the high dimensional space and do the calculations there, it is enough to obtain the inner product matrix or kernel matrix $K belongs R n\times n$ of the mapped points 
+
+Example of calculating the kernel matrix using a Gaussian kernel:
+
+\begin{equation}
+  K = \Phi(x_i)^T\Phi(x_j) = K(x_i\, x_j) = exp (- \frac{\norm{x_i - x_j}^2}{2\sigma^2})
+\end{equation}
+
+While points can't be linearly separated in low-dimensional space, they can almost always be linearly separated in higher-dimensional space (if we map them to higher-dim space it's easy to construct a hyperplane that divides the points into arbitrary clusters).
+
+Another trick that one can use is *reprenseters theorem*.  
+
+Implemented in R with `kernlab::kpca`
+
+### Algorithm
+
+1. Select kernel function
+2. Calculate the kernel matrix
+3. Center kernel matrix
+4. Solve the eigenproblem
+5. Project the data to each new dimension
+
+Implementation in `R` with `kernlab::kpca`
+
+
+
+
+## Classical scalling
+
+Classingcal scalling (CS) was introduced by Torgerson (1952), it uses an eigenvalue decomposition of a transformed distance matrix to find an embedding that maintains the distances of the distance matrix (it can be seen as a kPCA with kernel $x^Ty$). A matrix of Euclidean distances can be transformed into an inner product matrix by some simple transformations and therefore yields the same result as a PCA. Classical scaling is conceptually more general than PCA in that arbitrary distance matrices can be used (doesn't need the original coordinates, just a distance matrix $D$). Implementation in `R` with `stats::cmdscale`.
+
+
+
+
+
+## Isomap
+
+Isomap is similar to CS, but approximates the structure of the manifold by using geodesic distances. In Isomap graph is created by keeping only the connections between every point and its $k$ nearest neighbors to produce a $k$-nearest neighbor graph ($k$-NNG), or by keeping all distances smaller than a value $\epsilon$ producing an $\epsilon$-neighborhood graph ($\epsilon$-NNG). Geodesic distances are obtained by recording the distance on the graph and CS is used to find an embedding in fewer dimensions. Implementation in `R` with `vegan::isomap`.
+
+??So DR is performed on a graph?? What happens with other connections? Do they become zeroes?
+
+
+
+
+
+## LLE
+
+Points that lie on a manifold in a high dimensional space can be reconstructed through linear combinations of their neighborhoods if the manifold is well sampled and the neighborhoods lie on a locally linear patch. These reconstruction weights, $W$, are the same in the high dimensional space as the internal coordinates of the manifold. Locally Linear Embedding (LLE); Roweis and Saul, 2000) is a technique that constructs a weight matrix $W belong R n \times n$ with elements $w_{ij}$ so that:
+
+\begin{equation}
+\end{equation}
+
+Finally eigenvalue decomposition is applied. Is similar to Isomap but is computationally better because $W$ is sparse. Implementation in `R` with `lle::lle`.
+
+
+
+
+
+## Laplacian Eigenmaps
+
+A graph is constructed, usually from a distance matrix, the graph can be made sparse by keeping only the $k$ nearest neighbors, or by specifying an $\epsilon$ neighborhood. Then, a similarity matrix $W$ is calculated by using a Gaussian kernel , if $c = 2\sigma^2 = infinity$, then all distances are treated equally, the smaller $c$ the more emphasis is given to differences in distance. The degree of vertex $i$ is $d_i = \sum nj = 1 w_{ij}$ and the degree matrix, $D$, is the diagonal matrix with entries $d_i$. Then we can form the graph Laplacian $L = D − W$.  
+Just like LLE Laplacian Eigenmaps avoid computational complexity by creating a sparse matrox and not having to estimate the distances between all pairs of points. Then the eigenvectors corresponding to the lowest eigenvalues larger than $0$ of the matrix $L$  are computed. Implementation in `R` with `dimRed::???`.
+
+
+
+
+
+## Diffusion Maps
+
+Diffusion Maps (Coifman and Lafon, 2006) takes a distance matrix as input and calculates the transition probability matrix $P$ of a diffusion process between the points to approximate the manifold. Then the embedding is done by an eigenvalue decompositon of $P$ to calculate the coordinates of the embedding. The algorithm for Diffusion Maps is similar to Laplacian Eigenmaps. Both algorithms uses the same weight matrix, Diffusion Map calculate the transition probability on the graph after $t$ time steps and do the embedding on this probability matrix. The idea is to simulate a diffusion process between the nodes of the graph, which is more robust to short-circuiting than the $k$-NNG from Isomap. Implementation in `R` with `diffusionMap::diffuse`.
+
+
+
+
+
+## non-Metrix Dimensional Scaling
+
+non-Metric Dimensional Scaling (nMDS) uses optimization methods to embed the data in such a way that the given distances are maintained (while CS derived methods use eigenvector decomposition). nMDS uses stress function:
+
+\begin{equation}
+  S = \sqrt{\frac{\sum_{i<j} (d_{ij} - \hat d_{ij})^2}}{\sum_{i < j} d^2_{ij}}
+\end{equation}
+
+is used, and the algorithm tries to embed $y_i$ in such a way that the order of the $d_{ij}$ is the same as the
+order of the $\hat d_{ij}$. Implementation in `R` with `vegan::monoMDS`.
+
+
+
+
+
+## Force Directed Methods
+
+
+
+
+
+
+
+
+
+## t-SNE
+
+## ICA
+
+## Dimensionality Reducation via Regression
+
+## Auto Encoder
+
+## Independent Component Analysis
+
+<!-- youtube lectures on linear algebra
+http://videolectures.net/mlss2012_lawrence_dimensionality_reduction/?q=dimensionality%20reduction
+http://www.svcl.ucsd.edu/courses/ece271B-F09/handouts/Dimensionality.pdf
+https://stats.stackexchange.com/questions/378751/why-is-pca-sensitive-to-outliers
+https://freevideolectures.com/course/3474/pattern-recognition-and-application/16
+https://en.wikipedia.org/wiki/Hairy_ball_theorem
+https://stats.stackexchange.com/questions/90331/step-by-step-implementation-of-pca-in-r-using-lindsay-smiths-tutorial
+ -->
+
+
+
+
+
+
+
+
+
+
+
+<!-- https://medium.com/@layog/i-do-not-understand-t-sne-part-2-b2f997d177e3 
+-->
+
+<!-- 
+# Applications
+
+- R packages
+- Solving problems
+  - Swiss roll
+  - nipt
 
 Goal
 Algorithm
@@ -424,3 +545,12 @@ When works/doesn't work
 Implementation
   Algorithm
   R
+ -->
+
+
+
+
+
+# Implementation of Dimensionality Reduction
+
+Python - `scikit-learn`; Julia - `ManifoldLearning` & `MultivariateStats`; C++ - `Shogun toolbox`; multiple libraries for Matlab and R.
