@@ -41,7 +41,7 @@ In general high-dimensional data is hard to visualize or at least to understand 
 
 Another group of problems is *mathematical anomalies*. First time term *curse of dimensionality* used by [Bellman, 1961](https://books.google.be/books?hl=en&lr=&id=iwbWCgAAQBAJ&oi=fnd&pg=PR9&ots=bDH6UqK66h&sig=2JT8vX8dg1-8jSqkwY9ACw3bbnc&redir_esc=y#v=onepage&q=curse&f=false)  for an empty space phenomenon:
 
-> It is the curse of dimensionality, a malediction that has plagued the scientists from the earliest days ... A function $u = u\left(t\right)$ can be visualized as a curve (i.e. density curve) and easily tabulated. It $t$ is specified over $0 \geq t \leq 1$ with $k$-points ($k\left(0.01\right), k = 0,1,2,..,99$) we have to tabulate over $100$ values. A function of two variables $u=u\left(t,s\right)$ needs a 3D surface and if $0 \geq t,s \leq 1$ then we need $100 \times 100$ values ($10^4$). Function with three values needs $10^6$ grid values ... Since current machines are able to store $3 \times 10^4$ values and in the next years may only go up to $10^6$, we see that multidimensional problems cannot be solved routinely because of the memory requirements.
+> It is the curse of dimensionality, a malediction that has plagued the scientists from the earliest days ... A function $u = u\left(t\right)$ can be visualized as a curve (i.e. density curve) and easily tabulated. It $t$ is specified over $0 \leq t \geq 1$ with $k$-points ($k(0.01), k = 0,1,2,..,99$) we have to tabulate over $100$ values. A function of two variables $u=u\left(t,s\right)$ needs a 3D surface and if $0 \leq t,s \geq 1$ then we need $100 \times 100$ values ($10^4$). Function with three values needs $10^6$ grid values ... Since current machines are able to store $3 \times 10^4$ values and in the next years may only go up to $10^6$, we see that multidimensional problems cannot be solved routinely because of the memory requirements.
 
 ### Ratio of hyper-cube & hyper-sphere
 
@@ -298,8 +298,6 @@ When the dissimilarity data are only available in nonstandard, qualitative forma
 
 First two or three PCs might explain an insufficient fraction of the variance, in which case the higher-order components should be retained, and multiple combinations of the components should be used for visualizations (e.g., PC1 versus PC2, PC2 versus PC4, and PC3 versus PC5 etc.). For DR methods based on spectral decompositions, such as PCA one could use the distribution of the eigenvalues to guide your choice of dimensions. In practice, people usually rely on [“the elbow rule”](https://en.wikipedia.org/wiki/Elbow_method_(clustering)) when making decisions.  
 When number of wanted dimensions is unknown - the number of components can be chosen by repeating the DR process using an increasing number of dimensions and evaluating whether incorporating more components achieves a significantly lower value of the loss function that the method minimizes, e.g., [the Kullback–Leibler divergence](https://en.wikipedia.org/wiki/Kullback–Leibler_divergence).
-
-[Kullback-Leibler & t-SNE](http://jotterbach.github.io/2016/05/23/TSNE/)
 
 ## Apply the Correct Aspect Ratio for Visualizations
 
