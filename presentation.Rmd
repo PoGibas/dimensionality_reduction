@@ -11,10 +11,10 @@ output:
   xaringan::moon_reader:
     css: [default, metropolis, metropolis-fonts]
     lib_dir: libs
-    nature:
-      highlightStyle: github
 ---
 ```{r, echo = FALSE, include = FALSE, warning = FALSE, message = FALSE}
+library(dimRed)
+library(ggplot2)
 library(knitr)
 library(plotly)
 library(vegan)
@@ -25,7 +25,8 @@ opts_chunk$set(
   warning = FALSE,
   include = TRUE,
   results = TRUE,
-  cache = TRUE
+  cache = TRUE,
+  fig.align = "center"
 )
 ```
 
@@ -52,12 +53,12 @@ opts_chunk$set(
 
 
 # Curse of Dimensionality
+
 In nature combining multiple simple units allows to perform complex tasks (i.e. units are redundant and after failing can be replaced with others that achieve the same task).  
 
-The goal of dimensionality reduction (DR) is to **summarize a large set of parameters into a smaller set with no or less redundancy** (i.e. find low representation of data while preserving their key properties).
+The goal of dimensionality reduction (DR) is to **summarize a large set of parameters into a smaller set with no or less redundancy** (i.e. find low representation of data while preserving it's key properties).
 
 High dimensionality problems:  
-
 - Practical  
 - Theoretical / Mathematical
 
@@ -72,32 +73,24 @@ High dimensionality problems:
 - **Processing of sensor arrays**: biomedical applications; ecology; seismology; weather forecasting; gps; image processing.
 - **Multivariate data analysis**: in contrast with sensor arrays multivariate data analysis focuses on the analysis of measures that are related to each other, but come from different types of sensors.
 - **Data mining**: deals with more *exotic* data structures than arrays of numbers (e.g. text mining).
-<div style='text-align: center;'>
-  <img height='270' src='./figures/Diaz_plants.png' />
-</div>
+
+```{r, out.width = 400}
+include_graphics("./figures/Diaz_plants.png")
+```
 
 ---
 
 
 
 # Theoretical Problems
-## Curse of Dimensionality & Mathematical anomalies 
+## Curse of dimensionality & mathematical anomalies 
 
 *When the dimensionality grows, the well-known properties of the usual 2D or 3D Euclidean spaces make way for strange and annoying phenomena*
 
-Another group of problems is *mathematical anomalies*. First time term *curse of dimensionality* used by [Bellman, 1961](https://books.google.be/books?hl=en&lr=&id=iwbWCgAAQBAJ&oi=fnd&pg=PR9&ots=bDH6UqK66h&sig=2JT8vX8dg1-8jSqkwY9ACw3bbnc&redir_esc=y#v=onepage&q=curse&f=false) for an empty space phenomenon:
+First time term *curse of dimensionality* used by [Bellman, 1961](https://books.google.be/books?hl=en&lr=&id=iwbWCgAAQBAJ&oi=fnd&pg=PR9&ots=bDH6UqK66h&sig=2JT8vX8dg1-8jSqkwY9ACw3bbnc&redir_esc=y#v=onepage&q=curse&f=false) for an empty space phenomenon:
 
-```{r}
-library(plotly)
-mtcars$am[which(mtcars$am == 0)] <- 'Automatic'
-mtcars$am[which(mtcars$am == 1)] <- 'Manual'
-mtcars$am <- as.factor(mtcars$am)
-
-plot_ly(mtcars, x = ~wt, y = ~hp, z = ~qsec, color = ~am, colors = c('#BF382A', '#0C4B8E')) %>%
-  add_markers() %>%
-  layout(scene = list(xaxis = list(title = 'Weight', domain=list(x = c(0,0))),
-                     yaxis = list(title = 'Gross horsepower'),
-                     zaxis = list(title = '1/4 mile time')))
+```{r, out.width = 1000, out.height = 300}
+include_graphics("./figures/bellman.png")
 ```
 
 ---
@@ -111,24 +104,33 @@ In a $D$-dimensional space a sphere contains a cube (i.e. circumscripted cube):
 
 $V_{cube}\left(r\right) = \left(2r\right)^D$
 
-$V_{sphere}\left(r\right) = \frac{\pi^{D/2}r^D}{\Gamma\left(1+ D / 2r\right)^D}$
-When $D$ increases the ratio between volume of sphere and cube tends to go towards zero:
+$V_{sphere}\left(r\right) = \frac{\pi^{D/2}r^D}{\Gamma\left(1+ D / 2r\right)^D}$  
+
+When $D$ increases the ratio between volume of sphere and cube goes towards zero:
 
 $\lim_{D\to\infty} \frac{V_{sphere}\left(r\right)}{V_{cube}\left(r\right)} = 0$
 
-```{r}
-volume_hypersphere <- function(r, d) {
-  numer <- pi^(d / 2)
-  denum <- gamma(d / 2 + 1)
-  numer / denum * r^d
-}
-volume_hypercube <- function(r, d) {
-  (2 * r)^d
-}
+---
 
-for(i in 1:10) {
-  print(volume_hypersphere(10, i) / volume_hypercube(10, i))
+
+# Theoretical Problems
+## Ratio of hyper-cube & hyper-sphere
+
+Implementation in `R`:
+```{r, echo = TRUE}
+volume_hypersphere <- function(r, D) {
+  numer <- pi^(D / 2)
+  denum <- gamma(D / 2 + 1)
+  numer / denum * r^D
 }
+volume_hypercube <- function(r, D) {
+  (2 * r)^D
+}
+# Ratio from $D = 2$ to $D = 10$
+```
+```{r, include = TRUE}
+round(sapply(2:10, function(D) {volume_hypersphere(10, D) / volume_hypercube(10, D)}), 3)
+include_graphics("./figures/hypercube.png")
 ```
 
 ---
@@ -138,27 +140,30 @@ for(i in 1:10) {
 # Theoretical Problems
 ## Hypervolume of a spherical shell
 
-Consider 2 concentric spheres (first with radius $r$, second with slightly smaller radius $r - \epsilon$) (i.e. $\epsilon$ is the thickness of the first sphere). The volume of hyper-volume sphere is given in (2):
+2 concentric spheres (first with radius $r$, second with slightly smaller radius $r - \epsilon$) (i.e. $\epsilon$ is the thickness of the first sphere). 
 
 $\frac{V_{spehere}\left(r\right) - V_{spehere}\left(r\left(1 - \epsilon\right)\right)}{V_{spehere}\left(r\right)} = \frac{r^D - \left(r-\epsilon\right)^D}{r^D}$
 
-When $D$ increases the ration tends to go towards $1$ (the shell contains almost all the volume).
+When $D$ increases the ratio tends to go towards $1$ (the shell contains almost all the volume).
+
+```{r, out.height = 250, out.width = 400}
+include_graphics("./figures/hyperspheres.png")
+```
+Probability mass versus dimension plot shows the volume of density inside $0.95$ of a SD (yellow), between $0.95$ and $1.05$ SD (green), over $1.05$ SD (white) [Bishop, 1995](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.679.1104&rep=rep1&type=pdf)
 
 ---
 
 
 
-# Features of Dimensionality Reduction Methods  
+# Features of DR Methods
 ## Expected Functionalities
 
-Goal of DRM is to **identify and eliminate the redundancies among the variables**. This requires three main functionalities:  
-
+Goal of DRM is to **identify and eliminate the redundancies among the variables**. This requires:  
 1. Estimate the number of latent variables.
 2. Embed data in order to reduce their dimensionality.
 3. Embed data in order to recover the latent variable.
 
-The process of dimension reduction can be formulated as follows. Let $X ⊂ RN×D$ be a set of $N$ points in a $D$-dimensional space. Find a new meaningful representation $Y ⊂ RN×d$ of the data in a lower $d$-dimensional space, generally $d ≪ D$.
-Point $x_i$ is mapped via dimension reduction into the low-dimensional space as point $y_i$. $E$ is the objective function (the cost/error/stress function) to be optimised and whose solution to the optimisation provides the low-dimensional representation $Y$.
+There's no *ideal* method that can perform all three tasks.
 
 ---
 
@@ -172,7 +177,7 @@ A certain process in nature may be generated from a small set of independent deg
 - Measurement procedure
 - Stochastic variation
 
-A sample of $D$-dimensional vectors that has been generated by an unknown distribution. We assume that this distribution in data space is actually due to a small number $L < D$ of variables acting in combination, called *latent variables*. Thus, a point in latent space is generated according to a prior distribution and it's mapped onto data space by a smooth mapping. This results in an $L$-dimensional manifold in data space. DR is achieved by defining a reverse mapping from data space onto latent space, so that every data point is assigned a representative in latent space.  
+A sample of $D$-dimensional vectors that has been generated by an unknown distribution. We assume that this distribution in data space is actually due to a small number $L < D$ of variables acting in combination, called **latent variables**. DR is achieved by defining a reverse mapping from data space onto latent space, so that every data point is assigned a representative in latent space.  
 
 ---
 
@@ -181,11 +186,9 @@ A sample of $D$-dimensional vectors that has been generated by an unknown distri
 # Expected Functionalities
 ## Estimation of the Number of Latent Variables
 
-The number of latent variables is often computed from a topological point of view, by estimating the intrinsic dimension(ality) of data. The intrinsic dimension reveals the presence of a topological structure in data. When the intrinsic dimension $P$ of data equals the dimension $D$ of the embedding space, there is no structure: there are enough degrees of freedom so that an $\varepsilon$-ball centered on any data point can virtually be completely filled by other data points. On the contrary, when $P < D$, data points are often constrained to lie in a well-delimited subspace. Consequently, a low intrinsic dimension indicates that a topological object or structure underlies the data set.  
+The number of latent variables can be computed from a topological point of view, by estimating the intrinsic dimension(ality) of data. This intrinsic dimension $P$ of data equals the dimension $D$ of the embedding space, there is no structure. On the contrary, when $P < D$, data points are often constrained to lie in a well-delimited subspace. Consequently, a low intrinsic dimension indicates that a topological object or structure underlies the data set.  
 
-```{r}
-library(dimRed)
-library(plotly)
+```{r, out.height = 400}
 swissRoll <- loadDataSet("Swiss Roll")
 pd <- data.frame(swissRoll@data, swissRoll@meta)
 plot_ly(x = pd$x, y = pd$y, z = pd$z, type = "scatter3d", mode = "markers", color = pd$x.1)
@@ -198,26 +201,14 @@ plot_ly(x = pd$x, y = pd$y, z = pd$z, type = "scatter3d", mode = "markers", colo
 # Expected Functionalities
 ## Estimation of the Number of Latent Variables
 
-Data are usually represented by high-dimensional feature vectors, but in many cases they could be in principle embedded in lower dimensional spaces without any information loss - which is the minimum number of variables needed to accurately describe the important features of a system?
-
-The important content of a dataset belongs to a manifold whose Intrinsic Dimension (ID) is much lower than the large number of coordinates. Such manifold is generally twisted and curved; in addition points on it will be non-uniformly distributed: two factors that make the identification of the ID and its exploitation really hard.
-
-Estimating the ID can be a hard task; data are almost invariably characterized by density variations, and this makes the estimate of the ID entangled with the estimate of the density. Moreover, data often lie on a topologically complex curved manifold. A further issue arising in high dimensions is that data behave in an extremely counterintuive way due to the so called curse of dimensionality4: the smallest sampled distance increases with the ID, and nearly all of the space is spread “far away” from every point. 
-
----
-
-
-
-# Expected Functionalities
-## Estimation of the Number of Latent Variables
-
+Usually manifold is twisted or curved and points on it will be non-uniformly distributed
 Different approaches have been developed to cope with the ID estimation problem:  
 - Projection techniques look for the best subspace to project the data by:  
 
 1. Minimizing a reconstruction error (e.g. In PCA can be computed from the eigenvalues)
 2. Preserving pairwise distances (e.g MDS)
 
-- Fractal methods (Hausdorff dimension): based on the idea that the volume of a $D$-dimensional ball of radius $r$ scales as $r^D$, they count the number of points within a neighborhood of $r$ and estimate the rate of growth of this number (Grassberg and Procaccia, 1981)[https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.50.346]
+- Fractal methods (Hausdorff dimension): based on the idea that the volume of a $D$-dimensional ball of radius $r$ scales as $r^D$, they count the number of points within a neighborhood of $r$ and estimate the rate of growth of this number [Grassberg and Procaccia, 1981](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.50.346)
 
 ---
 
@@ -226,15 +217,21 @@ Different approaches have been developed to cope with the ID estimation problem:
 # Expected Functionalities
 ## Embedding Data for Dimensionality Reduction
 
-If there is a low $L$-dimensional hidden space where the real data generation mechanism lies, but we observe the data in a high $H$-dimensional space. There is a function $F: Rl -> RD$ which is called embedding function which takes the data from $L$-dimensional hidden space and maps to the high dimensional observable one as $yi=f(xi)+ei$ The aim here is to learn about the function 𝑓
-f
-. All of these ideas are summed up in the following slide:
+If there is a low $L$-dimensional hidden space where the real data generation mechanism lies, but we observe the data in a high $D$-dimensional space. There is a function $f: R^L \Rightarrow R^D$ which is called embedding function which takes the data from $L$-dimensional and maps to the high dimensional observable one as $y_i = f(x_i) + \epsilon_i$.
 
-Re-embed the underlying $P$-dimensional manifold in a space having dimensionality between $P$ and $D$, hopefully closer to $P$ than $D$. 
+DR aims to re-embed data in such way that the manifold structure is preserved (the main problem is how to measure or characterize the structure of a manifold in order to preserve it).  
 
-Intuitively, DR aims at re-embedding data in such way that the manifold structure is preserved. If this constraint is relaxed, then DR no longer makes sense. The main problem is how to measure or characterize the structure of a manifold in order to preserve it - local neighborhood relationships should be faithfully rendered in the low- dimensional representation, whereas more distant relationships are less important. Unrolling the Swiss roll puts this principle into practice: close points remain near each other, while the distances between non-neighbors is increased.  
-
-![Same 2D object in small dimension space](/Users/pogibas/___PHD/exams/stats/dimension_reduction/figures/Latent_variables_2.png)
+```{r, out.width = 300}
+pd <- embed(swissRoll, "MDS")
+pd2 <- data.frame(pd@data@data, pd@data@meta)
+ggplot(pd2, aes(MDS1, MDS2, color = x)) +
+  geom_point() +
+  scale_color_viridis_c() +
+  labs(
+    color = NULL
+  ) +
+  theme_classic()
+```
 
 ---
 
@@ -243,16 +240,13 @@ Intuitively, DR aims at re-embedding data in such way that the manifold structur
 # Expected Functionalities
 ## Embedding for Latent Variable Separation
 
-Additional constraints can be imposed on the desired $L$-dimension representation. These constraints are generally not related to topology. For example, it is often assumed that the latent variables are independent from each other. In this case, the $L$-dimensional representation must also satisfy this property in order to state that the latent variables have been retrieved.
-
-![Here it can be seen that knowing the abscissa of a point gives no clue about the ordinate of the same point (in previous figure this wasn't the case). Also, this figure was achieved gradually by modifying the low-dimensional representation of previous figures.](/Users/pogibas/___PHD/exams/stats/dimension_reduction/figures/Latent_variables_3.png)
+Additional constraints can be imposed on the desired $L$-dimension representation (generally not related to topology). For example, it is often assumed that the latent variables are independent from each other. In this case, the $L$-dimensional representation must also satisfy this property in order to state that the latent variables have been retrieved.
 
 ---
 
 
 
 # Characteristics
-
 
 1. The model that data are assumed to follow.
 
