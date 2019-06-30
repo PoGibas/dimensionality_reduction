@@ -47,6 +47,8 @@ opts_chunk$set(
   - non-Metric Dimensional Scaling
 - Tips for Effective Dimensionality Reduction
 
+---
+
 
 
 # Curse of Dimensionality
@@ -502,7 +504,7 @@ $B=-frac{1}{2}JD^2J$ where $J$ is centering matrix
 cmdscale_povilas <- function (D, dimensions = 2) {
   n <- attr(D, "Size")
   x <- matrix(0, n, n)
-  x[lower.tri(x)] <- d^2
+  x[lower.tri(x)] <- D^2
   x <- x + t(x)
 
   rm <- x * 0 + rowMeans(x)
