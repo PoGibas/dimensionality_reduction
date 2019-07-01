@@ -618,6 +618,25 @@ $D_{\text{KL}}(P\parallel Q)=\sum _{x\in {\mathcal {X}}}P(x)\log \left({\frac {P
 
 
 
+# t-dist Stochastic Neighbor Embedding
+### Interpretation
+
+- Hyperparameters are important
+
+```{r, out.height = 140, out.width = 1000, dpi = 400}
+include_graphics("./figures/tsne1.png")
+````
+- Cluster sizes in mean nothing
+
+```{r, out.height = 140, out.width = 1000, dpi = 400}
+include_graphics("./figures/tsne2.png")
+````
+- Distances between clusters might not mean anything
+
+---
+
+
+
 # Tips for Effective DR
 ## Choose an appropriate method 
 
