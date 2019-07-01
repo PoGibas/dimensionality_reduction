@@ -440,7 +440,7 @@ Implementation in `R` with `stats::prcomp`
 
 # Kernal Principal Component Analysis
 
-If groups are lineary inseperable in the input space $R^{2}$ we can make them lineary seperable by mapping them to a higher dimension space $R^3$. kPCA extends PCA to deal with nonlinear dependencies - map the data into a high dimensional space and then perform PCA in this space ([Sch􏰅olkopf et al, 1998](http://www.face-rec.org/algorithms/Kernel/kernelPCA_scholkopf.pdf)):  
+If groups are lineary inseperable in the input space $R^{2}$ we can make them lineary seperable by mapping them to a higher dimension space $R^3$. kPCA extends PCA to deal with nonlinear dependencies - map the data into a high dimensional space and then perform PCA in this space ([Scholkopf et al., 1998](http://www.face-rec.org/algorithms/Kernel/kernelPCA_scholkopf.pdf)):  
 
 $\Phi: R^{2} \Rightarrow R^{3}$  
 $(x_1, x_2) \Rightarrow (x_1, x_2, x_1^2 + x_2^2)$
@@ -682,8 +682,7 @@ First $n$ dimensions might explain an insufficient fraction of the variance, in 
 - Randomization methods based on eigenvalues - randomize the values within variables in the data and conduct a PCA on the reshuffled data. In each randomization, evaluate statistics based on the eigenvalues:
   1. Observed eigenvalue for axis.
   2. a Pseudo-F-ratio calculated as each eigenvalue divided by the sum of the remaining (or smaller) eigenvalues.
-  3. The ratio between an eigenvalue and the next adjacent eigenvalue.
-  4. The difference between an eigenvalue and the next adjacent eigenvalue.
+  3. The ratio (or difference) between an eigenvalue and the next adjacent eigenvalue.
 
 ---
 
