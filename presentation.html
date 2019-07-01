@@ -526,7 +526,7 @@ Points that lie on a manifold in a high dimensional space can be reconstructed t
 
 1. Compute the neighbors of each data point `\(\vec{x}_{\,i}\)` (number of neighbors is the only needed parameter)
 2. Compute the weights `\(W_{ij}\)` that best reconstruct each data point `\(\vec{x}_{\,i}\)` from its neighbors
-3. Compute the vectors `\(\vec{y}_{\,i}\)` best reconstructed by the weights `\(W_{ik}\)`
+3. Compute the vectors `\(\vec{y}_{\,i}\)` best reconstructed by the weights `\(W_{ij}\)`
 4. Apply eigenvalue decomposition.
 
 Is similar to Isomap but is computationally better because `\(W\)` is sparse. Implementation in `R` with `lle::lle`.
