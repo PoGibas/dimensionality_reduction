@@ -42,7 +42,7 @@ class: center, middle, inverse, title-slide
   - Categories
 - Dimensionality Reduction Methods
   - Principal Component Analysis
-  - Kernal Principal Component Analysis
+  - Kernel Principal Component Analysis
   - Classical Multidimensional Scaling
   - non-Metric Dimensional Scaling
   - Locally Linear Embedding
@@ -405,7 +405,7 @@ Implementation in `R` with `stats::prcomp`
 
 
 
-# Kernal Principal Component Analysis
+# Kernel Principal Component Analysis
 
 If groups are lineary inseperable in the input space `\(R^{2}\)` we can make them lineary seperable by mapping them to a higher dimension space `\(R^3\)`. kPCA extends PCA to deal with nonlinear dependencies - map the data into a high dimensional space and then perform PCA in this space ([Scholkopf et al., 1998](http://www.face-rec.org/algorithms/Kernel/kernelPCA_scholkopf.pdf)):  
 
@@ -418,7 +418,7 @@ If groups are lineary inseperable in the input space `\(R^{2}\)` we can make the
 
 
 
-# Kernal Principal Component Analysis
+# Kernel Principal Component Analysis
 
 This can be computationally expensive, but we can use *kernel trick* - the principal components can also be computed from the inner product matrix `\(K = X^TX\)`. Here we don't need to explicitly map all points into the high dimensional space and do the calculations there, it is enough to obtain the kernel matrix. 
 
